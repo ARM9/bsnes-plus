@@ -13,6 +13,7 @@ public:
   SMP();
   ~SMP();
   
+  bool load_spc_dump(string path);
   void save_spc_dump(string path);
 
   static const uint8 iplrom[64];

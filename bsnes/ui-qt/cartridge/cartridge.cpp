@@ -209,6 +209,39 @@ bool Cartridge::loadSuperGameBoy(const char *base, const char *slot) {
   return true;
 }
 
+bool Cartridge::loadSpc(const char *base) {
+  unload();
+
+  SNES::cartridge.basename = nall::basename(baseName = base);
+
+  fileName = baseName;
+  name = notdir(nall::basename(baseName));
+
+  application.currentRom = base;
+  
+  // dummy cartridge
+  const char *dummyCart = "\
+  <?xml version='1.0' encoding='UTF-8'?>\
+    <cartridge region='NTSC'>\
+    </cartridge>\
+  ";
+  SNES::cartridge.load(SNES::Cartridge::Mode::Normal,
+    lstring() << dummyCart);
+  
+  utility.modifySystemState(Utility::LoadCartridge);
+  
+  if (!SNES::smp.load_spc_dump(base)) {
+    utility.modifySystemState(Utility::UnloadCartridge);
+    return false;
+  }
+  
+  // put the CPU to sleep 
+  SNES::memory::wram[0] = 0xDB; // STP
+  SNES::cpu.regs.pc = 0;
+  
+  return true;
+}
+
 void Cartridge::saveMemory() {
   if(SNES::cartridge.loaded() == false) return;
 

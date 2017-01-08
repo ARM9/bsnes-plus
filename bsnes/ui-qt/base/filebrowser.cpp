@@ -201,6 +201,7 @@ void FileBrowser::onAcceptCartridge(const string &path) {
       else if(striend(filename, ".gb"))  acceptSuperGameBoy(filename);
       else if(striend(filename, ".sgb")) acceptSuperGameBoy(filename);
       else if(striend(filename, ".gbc")) acceptSuperGameBoy(filename);
+	  else if(striend(filename, ".spc")) cartridge.loadSpc(filename);
       //filter detection
       else if(strbegin(filter, "SNES cartridges")) acceptNormal(filename);
       else if(strbegin(filter, "BS-X cartridges")) acceptBsx(filename);

@@ -138,6 +138,48 @@ SMP::SMP() {
 SMP::~SMP() {
 }
 
+bool SMP::load_spc_dump(string path) {
+  file spc;
+  
+  if (!spc.open(path, file::mode::read))
+    return false;
+
+  // TODO: validate file header
+
+  // read SPC700 registers
+  spc.seek(0x25);
+  regs.pc = spc.readl(2);
+  regs.a  = spc.read();
+  regs.x  = spc.read();
+  regs.y  = spc.read();
+  regs.p  = spc.read();
+  regs.sp = spc.read();
+  
+  // read APU RAM
+  spc.seek(0x100);
+  spc.read(memory::apuram.data(), memory::apuram.size());
+
+  // set up some status from RAM values
+  op_buswrite(0xFC, memory::apuram[0xFC]);
+  op_buswrite(0xFB, memory::apuram[0xFB]);
+  op_buswrite(0xFA, memory::apuram[0xFA]);
+  op_buswrite(0xF9, memory::apuram[0xF9]);
+  op_buswrite(0xF8, memory::apuram[0xF8]);
+  op_buswrite(0xF2, memory::apuram[0xF2]);
+  op_buswrite(0xF1, memory::apuram[0xF1] & 0x87);
+ 
+  t0.stage3_ticks = memory::apuram[0xFD] & 15;
+  t1.stage3_ticks = memory::apuram[0xFE] & 15;
+  t2.stage3_ticks = memory::apuram[0xFF] & 15;
+  
+  // read DSP registers
+  for (unsigned i = 0; i < 128; i++) {
+    dsp.write(i, spc.read());
+  }
+  
+  return true;
+}
+
 void SMP::save_spc_dump(string path) {
   dump_spc = true;
   spc_path = path;
